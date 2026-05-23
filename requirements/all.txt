@@ -1,0 +1,3 @@
+-r robot.txt
+-r camera.txt
+-r dataset.txt

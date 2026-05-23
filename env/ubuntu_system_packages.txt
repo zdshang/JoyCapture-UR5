@@ -1,0 +1,14 @@
+# Ubuntu system packages needed before running camera/robot setup.
+#
+# Install with:
+#   sudo apt update
+#   grep -vE '^\s*(#|$)' env/ubuntu_system_packages.txt | sudo xargs apt install -y
+#
+# Note: librealsense2 packages may require adding Intel RealSense's apt source
+# first, depending on the Ubuntu version and machine image.
+build-essential
+pkg-config
+ffmpeg
+librealsense2-dev
+librealsense2-utils
+librealsense2-udev-rules

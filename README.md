@@ -2,13 +2,11 @@
 
 **JoyCapture-UR5: Gamepad-Guided Multimodal Demonstration Capture for UR5 Manipulation**
 
-![JoyCapture-UR5 social preview](joycapture-ur5-social-preview.png)
-
 A lightweight Xbox/gamepad teleoperation and multimodal data collection system for UR5 manipulation, recording robot trajectories, gripper events, controller actions, and synchronized RGB-D camera streams.
 
-The live recorder uses a source-data-first workflow: robot/action/gripper CSV files, session metadata, camera sync tables, and per-camera RealSense `.bag` files are written during teleoperation. Videos, exported image/depth frames, HDF5 episodes, and RLDS-style datasets are generated later by offline postprocessing.
-
 ![JoyCapture-UR5 system overview](joycapture-ur5-system-overview.png)
+
+The live recorder uses a source-data-first workflow: robot/action/gripper CSV files, session metadata, camera sync tables, and per-camera RealSense `.bag` files are written during teleoperation. Videos, exported image/depth frames, HDF5 episodes, and RLDS-style datasets are generated later by offline postprocessing.
 
 For full configuration, output layout, dataset format, and troubleshooting details, see [docs/DETAILS.md](docs/DETAILS.md).
 
@@ -187,6 +185,10 @@ Common choices:
 - `env/`: Conda environment file, Ubuntu system package list, and `.env` template.
 - `docs/`: detailed documentation.
 - `paths/`: generated recordings and postprocessed datasets; ignored by git.
+
+## Project Preview
+
+![JoyCapture-UR5 social preview](joycapture-ur5-social-preview.png)
 
 ## Contributing
 

@@ -1,0 +1,100 @@
+{
+  "robot_host": "ROBOT_IP_HERE",
+  "output_dir": "paths",
+  "auto_init": false,
+  "brake_release_on_start": true,
+  "gripper_activate_mode": "auto",
+  "camera_enable": true,
+  "camera_auto_record_on_start": false,
+  "camera_control_host": "127.0.0.1",
+  "camera_request_timeout_s": 12,
+  "camera_start_timeout_s": 90,
+  "camera_stop_timeout_s": 150,
+  "camera_inter_start_delay_s": 0.0,
+  "camera_inter_stop_delay_s": 0.5,
+  "motion": {
+    "translation_speed_mmps": 90,
+    "rotation_speed_degps": 55,
+    "xy_rotate_deg": -45,
+    "rot_axes_rotate_deg": 45,
+    "acceleration": 0.45,
+    "period_s": 0.01,
+    "deadzone": 0.14,
+    "home_velocity": 0.12,
+    "home_acceleration": 0.2,
+    "playback_entry_velocity": 0.08,
+    "playback_entry_acceleration": 0.12,
+    "playback_velocity": 0.1,
+    "playback_acceleration": 0.18
+  },
+  "gripper": {
+    "mode": "robotiq_socket",
+    "socket_port": 63352,
+    "open_pos": 0,
+    "close_pos": 255,
+    "speed": 180,
+    "force": 120,
+    "activate_in_teleop": false,
+    "start_open": true,
+    "open_on_home": true
+  },
+  "recording": {
+    "robot_fps": 30,
+    "require_fps_match": true,
+    "session_subdirs": true,
+    "record_interval_s": 0.0333333,
+    "convert_on_stop": false,
+    "output_formats": [
+      "raw"
+    ],
+    "rlds_copy_media": false,
+    "hdf5_embed_binary": false
+  },
+  "playback": {
+    "input_dir": "",
+    "session": "latest"
+  },
+  "cameras": [
+    {
+      "label": "d455",
+      "device_name": "D455",
+      "control_port": 61337,
+      "width": 640,
+      "height": 480,
+      "fps": 30,
+      "depth_width": 640,
+      "depth_height": 480,
+      "depth_fps": 30,
+      "infra_width": 640,
+      "infra_height": 480,
+      "infra_fps": 30,
+      "record_depth": true,
+      "record_infra": true,
+      "save_bag": true,
+      "deferred_postprocess": true,
+      "export_fps": 30,
+      "export_max_frames": 0
+    },
+    {
+      "label": "l515",
+      "device_name": "L515",
+      "service_backend": "system_cpp",
+      "control_port": 61338,
+      "width": 640,
+      "height": 480,
+      "fps": 30,
+      "depth_width": 640,
+      "depth_height": 480,
+      "depth_fps": 30,
+      "infra_width": 640,
+      "infra_height": 480,
+      "infra_fps": 30,
+      "record_depth": true,
+      "record_infra": false,
+      "save_bag": true,
+      "deferred_postprocess": true,
+      "export_fps": 30,
+      "export_max_frames": 0
+    }
+  ]
+}
