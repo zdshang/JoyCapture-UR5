@@ -1,5 +1,7 @@
 # JoyCapture-UR5
 
+[English](README.md) | [中文](README.zh-CN.md)
+
 **JoyCapture-UR5: Gamepad-Guided Multimodal Demonstration Capture for UR5 Manipulation**
 
 A lightweight Xbox/gamepad teleoperation and multimodal data collection system for UR5 manipulation, recording robot trajectories, gripper events, controller actions, and synchronized RGB-D camera streams.
@@ -146,7 +148,7 @@ A normal recording should have:
 - Two camera entries, normally `d455` and `l515`.
 - A positive `frame_count` for each camera.
 - Existing `.bag`, timestamp CSV, metadata JSON, and intrinsics JSON paths for each camera.
-- `robot_record_fps` matching the configured camera FPS when `recording.require_fps_match` is `true`.
+- `recording.robot_fps` matching the configured camera FPS when `recording.require_fps_match` is `true`.
 
 Quickly list generated files for one task:
 
