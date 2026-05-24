@@ -18,7 +18,7 @@ For full configuration, output layout, dataset format, and troubleshooting detai
 - Robotiq gripper activation and open/close toggle.
 - Home pose set and return.
 - Raw trajectory recording and replay.
-- Dual-camera recording with Intel RealSense D455 and L515.
+- Dual-camera RealSense recording; the included and tested setup uses Intel RealSense D455 and L515, but the project is not limited to those two models.
 - Robot and camera sampling FPS can be configured and checked for consistency.
 - Live recording writes lightweight raw source data first.
 - Offline export to review videos, frames, depth CSV, HDF5, and RLDS-style data.
@@ -28,8 +28,7 @@ For full configuration, output layout, dataset format, and troubleshooting detai
 - UR5 / UR controller with External Control available on the teach pendant.
 - Robotiq gripper using socket control, commonly on port `63352`.
 - Xbox-compatible controller readable through Linux input devices.
-- Intel RealSense D455.
-- Intel RealSense L515.
+- Intel RealSense RGB-D cameras. The included and tested setup uses D455 and L515.
 - Ubuntu PC on the same network as the robot controller.
 
 ## Quick Start
@@ -51,7 +50,7 @@ Edit `config/teleop_launcher_config.local.json` for the local robot and cameras.
 
 Before running:
 
-- Connect the Xbox controller, D455, L515, and robot network cable.
+- Connect the Xbox controller, configured RealSense cameras, and robot network cable.
 - Make sure the robot controller and Ubuntu PC are on the same network.
 - On the UR teach pendant, make sure the External Control program is available and ready to run.
 
