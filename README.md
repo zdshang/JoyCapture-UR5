@@ -28,7 +28,7 @@ Before running on real hardware, read [SAFETY.md](SAFETY.md).
 ## Hardware
 
 - UR5 / UR controller with External Control available on the teach pendant.
-- Robotiq gripper using socket control, commonly on port `63352`.
+- Robotiq gripper using socket control.
 - Xbox-compatible controller readable through Linux input devices.
 - Intel RealSense RGB-D cameras. The included and tested setup uses D455 and L515.
 - Ubuntu PC on the same network as the robot controller.
@@ -211,6 +211,10 @@ Then push the branch and open a pull request for review.
 ## License
 
 This project is released under the MIT License. See [LICENSE](LICENSE).
+
+## Citation
+
+If you use JoyCapture-UR5 in academic work, please cite the repository using the metadata in [CITATION.cff](CITATION.cff).
 
 ## GitHub Notes
 
