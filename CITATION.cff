@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use JoyCapture-UR5 in your work, please cite it using the metadata in this file."
+title: "JoyCapture-UR5: Gamepad-Guided Multimodal Demonstration Capture for UR5 Manipulation"
+type: software
+authors:
+  - name: "JoyCapture-UR5 contributors"
+repository-code: "https://github.com/zdshang/JoyCapture-UR5"
+url: "https://github.com/zdshang/JoyCapture-UR5"
+license: MIT
+abstract: "JoyCapture-UR5 is a lightweight Xbox/gamepad teleoperation and multimodal data collection system for UR5 manipulation, recording robot trajectories, gripper events, controller actions, and synchronized RGB-D camera streams."
+keywords:
+  - UR5
+  - teleoperation
+  - robot learning
+  - demonstration collection
+  - multimodal dataset
+  - RGB-D
+  - RealSense
+  - Robotiq
