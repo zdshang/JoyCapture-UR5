@@ -28,6 +28,7 @@ def recv_line(sock: socket.socket, timeout: float) -> str:
 
 
 def dashboard_command(host: str, command: str, timeout: float) -> str:
+    """Send one UR dashboard command and return the controller reply."""
     with socket.create_connection((host, DASHBOARD_PORT), timeout=timeout) as sock:
         _ = recv_line(sock, timeout)
         sock.sendall((command.strip() + "\n").encode("utf-8"))
@@ -35,6 +36,7 @@ def dashboard_command(host: str, command: str, timeout: float) -> str:
 
 
 def wait_program_stopped(host: str, timeout_s: float, dashboard_timeout: float) -> None:
+    """Poll dashboard state until no UR program is running."""
     deadline = time.monotonic() + max(0.1, timeout_s)
     while time.monotonic() < deadline:
         try:
@@ -66,6 +68,7 @@ def gripper_activate_urp(host: str, urp_path: str, timeout: float, settle_timeou
 
 
 def gripper_activate_socket(host: str, timeout: float, port: int, speed: int, force: int, pos: int) -> None:
+    """Activate Robotiq through its socket interface without loading a URP."""
     print(f"[init] gripper activate via socket port {port}")
     cmds = [
         "SET ACT 1",

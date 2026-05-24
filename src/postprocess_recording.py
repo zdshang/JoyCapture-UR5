@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+"""Post-process one raw JoyCapture-UR5 recording session.
+
+Use this after live recording when camera media was deferred to BAG files or
+when HDF5/RLDS exports were intentionally skipped during teleoperation.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -92,6 +98,7 @@ def build_bag_args(
     camera: dict[str, Any],
     media: set[str],
 ) -> SimpleNamespace:
+    """Build the argument object expected by `postprocess_realsense_bag`."""
     label = _safe_label(str(camera.get("label", "") or camera.get("device_name", "camera")))
     metadata_path = _resolve_path(camera.get("metadata_path"), raw_root / "camera_metadata" / label / f"{label}_metadata_{session_id}.json")
     metadata = _load_json(metadata_path) if metadata_path.exists() else {}
@@ -125,6 +132,7 @@ def build_bag_args(
 
 
 def process_camera_media(raw_root: Path, session_id: str, camera: dict[str, Any], media: set[str]) -> dict[str, Any]:
+    """Export selected media artifacts for one camera and update its metadata."""
     args = build_bag_args(raw_root=raw_root, session_id=session_id, camera=camera, media=media)
     summary = export_bag(args, match_mode="exact")
     if not summary["ok"] and summary["timestamp_target_count"] and summary["matched_frames"] == 0:
@@ -151,6 +159,7 @@ def process_camera_media(raw_root: Path, session_id: str, camera: dict[str, Any]
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
+    """Resolve the session, process requested cameras, and export datasets."""
     outputs = parse_outputs(args.outputs)
     media_outputs = outputs & {"video", "frames", "depth_csv"}
     dataset_outputs = sorted(outputs & {"hdf5", "rlds"})

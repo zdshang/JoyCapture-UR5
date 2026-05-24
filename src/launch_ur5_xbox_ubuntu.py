@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+"""Ubuntu launcher for JoyCapture-UR5 teleoperation.
+
+This script is the orchestration layer between the JSON config and the runtime
+processes. It validates dependencies, starts camera recorder services, performs
+optional robot/gripper initialization, then launches the main RTDE teleop script
+with explicit command-line arguments.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -164,6 +172,7 @@ def require_recording_fps_match(
     camera_enabled: bool,
     target_robot_fps: float,
 ) -> None:
+    """Stop early when robot and camera sample rates would drift by design."""
     if not camera_enabled or not bool(recording.get("require_fps_match", True)):
         return
     mismatches: list[str] = []
@@ -206,6 +215,7 @@ def output_formats_arg(recording: dict[str, object]) -> str:
 
 
 def start_camera_services(config: dict[str, object]) -> list[subprocess.Popen[str]]:
+    """Start one recorder service per configured camera and verify its socket."""
     cameras = list(config.get("cameras", []))
     if not cameras:
         return []
@@ -241,6 +251,7 @@ def start_camera_services(config: dict[str, object]) -> list[subprocess.Popen[st
 
 
 def stop_camera_services(config: dict[str, object], processes: list[subprocess.Popen[str]]) -> None:
+    """Ask camera services to exit, then terminate any process that remains."""
     camera_host = str(config.get("camera_control_host", "127.0.0.1"))
     cameras = list(config.get("cameras", []))
     for camera in cameras:
@@ -343,6 +354,7 @@ def run_brake_release_if_enabled(config: dict[str, object]) -> None:
 
 
 def build_teleop_command(config: dict[str, object]) -> list[str]:
+    """Translate the launcher JSON config into the teleop script's CLI flags."""
     robot_host = str(config.get("robot_host", "")).strip()
     if not robot_host or robot_host in {"ROBOT_IP_HERE", "192.168.0.10"}:
         raise SystemExit("launcher config must define robot_host")
@@ -616,6 +628,8 @@ def parse_args() -> argparse.Namespace:
 def main() -> int:
     global OUTPUT_ROOT, PLAYBACK_INPUT_DIR, PLAYBACK_SESSION
 
+    # Resolve runtime paths before starting services so every process writes into
+    # the same recording tree.
     args = parse_args()
     config_path = resolve_config_path(str(args.config).strip() or None)
     if not config_path.exists():
@@ -649,6 +663,8 @@ def main() -> int:
     signal.signal(signal.SIGTERM, _signal_handler)
 
     try:
+        # Keep the launch order conservative: robot readiness first, camera
+        # services second, live teleoperation last.
         run_brake_release_if_enabled(config)
         run_gripper_activate_if_enabled(config)
         run_init_if_enabled(config)

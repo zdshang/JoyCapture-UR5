@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Install Python dependencies into a local .vendor directory for the selected
+# conda environment, leaving the shared environment itself mostly untouched.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

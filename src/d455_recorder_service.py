@@ -38,6 +38,14 @@ DEFAULT_CAMERA_DEPTH_CSV_DIR = DEFAULT_OUTPUT_ROOT / "camera_depth_csv"
 
 
 class RealSenseRecorderService:
+    """Small line-oriented JSON service that owns one RealSense pipeline.
+
+    The teleop process talks to this service over localhost so camera capture can
+    keep running even when robot control is busy. Commands are intentionally
+    simple (`ping`, `start`, `status`, `mark_start`, `stop`, `shutdown`) because
+    they are used from both the launcher and the main teleoperation loop.
+    """
+
     def __init__(self) -> None:
         self.pipeline: rs.pipeline | None = None
         self.pipeline_profile: rs.pipeline_profile | None = None
@@ -106,6 +114,12 @@ class RealSenseRecorderService:
         return items
 
     def _select_device_serial(self, preferred_name: str) -> tuple[str, bool]:
+        """Return a serial number and whether it matched the requested camera.
+
+        The RealSense SDK starts streams by serial number, while config files are
+        easier for humans to maintain by product/name. If no preferred name is
+        configured, the first detected camera is used.
+        """
         preferred = preferred_name.strip().lower()
         serial_first = ""
         if not preferred:
@@ -142,6 +156,7 @@ class RealSenseRecorderService:
         return "", False
 
     def _stop_pipeline(self) -> None:
+        """Stop capture and release SDK/video resources before reconfiguration."""
         self.stop_event.set()
         if self.capture_thread is not None and self.capture_thread.is_alive():
             self.capture_thread.join(timeout=2.0)
@@ -162,6 +177,7 @@ class RealSenseRecorderService:
         timeout_ms: int = 2000,
         attempts: int = 2,
     ) -> tuple[bool, str]:
+        """Verify that a newly started pipeline actually produces color frames."""
         last_err = ""
         for _ in range(max(1, attempts)):
             try:
@@ -191,6 +207,7 @@ class RealSenseRecorderService:
         color_frame: rs.frame,
         depth_frame: rs.frame | None,
     ) -> None:
+        """Optionally write per-frame RGB/depth artifacts during live capture."""
         if self.frame_export_dir is None:
             return
         if self.export_frame_every_n <= 0:
@@ -228,6 +245,12 @@ class RealSenseRecorderService:
                 pass
 
     def _capture_loop(self) -> None:
+        """Background loop that records frames and timestamp rows.
+
+        Timestamps are captured from three clocks: host monotonic time for
+        robot/camera alignment, wall time for inspection, and RealSense frame
+        timestamp/number for SDK-level matching.
+        """
         assert self.pipeline is not None
         while not self.stop_event.is_set():
             try:
@@ -303,6 +326,12 @@ class RealSenseRecorderService:
         save_bag: bool,
         bag_path: Path | None,
         ) -> tuple[bool, str]:
+        """Start RealSense with graceful fallback from rich streams to color-only.
+
+        Some USB ports, firmware versions, and camera models cannot support every
+        requested stream combination. The service tries the most complete mode
+        first, then falls back while reporting the final `pipeline_mode`.
+        """
         self._stop_pipeline()
         try:
             devices = list(rs.context().query_devices())
@@ -471,6 +500,7 @@ class RealSenseRecorderService:
         self.intrinsics_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     def cmd_start(self, payload: dict[str, object]) -> dict[str, object]:
+        """Start a session and return all paths needed by the teleop manifest."""
         if self.recording:
             return {"ok": False, "error": "already recording"}
         session_id = str(payload.get("session_id", "")).strip()
@@ -596,6 +626,7 @@ class RealSenseRecorderService:
         }
 
     def _flush_frame_ts_csv(self) -> None:
+        """Persist the current timestamp buffer so progress survives interruptions."""
         if self.frame_ts_path is None:
             return
         self.frame_ts_path.parent.mkdir(parents=True, exist_ok=True)

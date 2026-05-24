@@ -1,3 +1,8 @@
+// Dedicated RealSense recorder service for systems that prefer a native L515 path.
+//
+// It implements the same newline-delimited JSON command protocol as
+// d455_recorder_service.py, but keeps capture in C++ for lower overhead on
+// Linux lab machines.
 #include <librealsense2/rs.hpp>
 
 #include <arpa/inet.h>
@@ -27,6 +32,7 @@ namespace fs = std::filesystem;
 using Clock = std::chrono::steady_clock;
 
 struct FrameRow {
+    // One row in the camera timestamp CSV used for robot-camera alignment.
     int frame_idx = 0;
     long long host_monotonic_ns = 0;
     long long system_time_ns = 0;
@@ -37,6 +43,8 @@ struct FrameRow {
 };
 
 struct RecorderState {
+    // Shared service state. Socket handlers and the capture thread both touch
+    // these fields, so updates to frame_rows and paths are guarded by mu.
     std::mutex mu;
     rs2::pipeline pipe;
     rs2::pipeline_profile profile;

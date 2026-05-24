@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Export video/frame/depth artifacts from one RealSense BAG using the configured
+# conda environment.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Build the native L515 recorder service when needed, then run it with the
+# same arguments passed by the Python launcher.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

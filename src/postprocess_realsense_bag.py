@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+"""Export videos, RGB/depth frames, and metadata from a RealSense BAG file."""
+
 from __future__ import annotations
 
 import argparse
@@ -27,6 +29,8 @@ class FrameTarget:
 
 
 class FfmpegBgrWriter:
+    """Tiny pipe-based writer used because OpenCV codecs vary across machines."""
+
     def __init__(self, path: Path, fps: float) -> None:
         self.path = path
         self.fps = max(1.0, float(fps))
@@ -134,6 +138,7 @@ def _int_or_none(value: str | None) -> int | None:
 
 
 def load_frame_targets(path: Path | None) -> list[FrameTarget]:
+    """Load target frame indices from the live capture timestamp CSV."""
     if path is None or not path.exists():
         return []
     targets: list[FrameTarget] = []
@@ -238,6 +243,7 @@ def resolve_target_frame_idx(
     by_timestamp_us: dict[int, int],
     match_mode: str,
 ) -> int | None:
+    """Map a BAG color frame back to the frame index used during live capture."""
     if not targets:
         return bag_sequence_idx
     if match_mode == "order":
@@ -278,6 +284,7 @@ def export_depth_artifacts(
 
 
 def export_bag(args: argparse.Namespace, *, match_mode: str) -> dict[str, Any]:
+    """Replay a BAG once and export the requested media outputs."""
     label = _safe_label(args.label)
     bag_path = Path(args.bag).expanduser()
     video_path = Path(args.video_path).expanduser()

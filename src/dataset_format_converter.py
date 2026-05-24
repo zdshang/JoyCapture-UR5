@@ -1,4 +1,12 @@
 #!/usr/bin/env python3
+"""Convert one JoyCapture-UR5 recording between raw, HDF5, and RLDS-style forms.
+
+The raw format is the canonical on-disk recording layout produced by teleop:
+CSV robot/action tables, a session manifest, optional camera timestamp/sync
+tables, and optional image/depth artifacts. HDF5 and RLDS-style outputs are
+derived views for downstream learning pipelines.
+"""
+
 from __future__ import annotations
 
 import argparse
@@ -235,6 +243,7 @@ def _write_binary_files(h5: h5py.File, manifest: dict[str, Any], raw_root: Path)
 
 
 def _write_steps(h5: h5py.File, dataset_csv: Path | None) -> None:
+    """Write learning-friendly step tensors from `dataset_samples` CSV rows."""
     columns, rows = read_csv_rows(dataset_csv)
     if not rows:
         return
@@ -289,6 +298,7 @@ def _camera_sync_rows(raw_root: Path, camera: dict[str, Any], label: str) -> tup
 
 
 def _write_camera_group(h5: h5py.File, raw_root: Path, session_id: str, camera: dict[str, Any]) -> None:
+    """Pack one camera's metadata, sync table, and exported frames into HDF5."""
     label = _safe_label(str(camera.get("label", "") or camera.get("device_name", "camera")))
     group = h5.require_group("cameras").require_group(label)
     _write_json_dataset(group, "metadata", camera)
@@ -361,6 +371,7 @@ def _write_camera_group(h5: h5py.File, raw_root: Path, session_id: str, camera: 
 
 
 def raw_to_hdf5(manifest_path: Path, output_path: Path, *, embed_binary: bool = False) -> Path:
+    """Convert a raw session manifest into a single HDF5 episode file."""
     manifest = load_manifest(manifest_path)
     raw_root = manifest_path.parents[1]
     session_id = _session_from_manifest(manifest)
@@ -470,6 +481,7 @@ def _write_json_file(path: Path, payload: Any) -> None:
 
 
 def raw_to_rlds(manifest_path: Path, output_dir: Path, *, copy_media: bool = False) -> Path:
+    """Convert raw data into an RLDS-like directory of JSONL steps and media refs."""
     manifest = load_manifest(manifest_path)
     raw_root = manifest_path.parents[1]
     session_id = _session_from_manifest(manifest)
@@ -494,6 +506,7 @@ def raw_to_rlds(manifest_path: Path, output_dir: Path, *, copy_media: bool = Fal
 
 
 def hdf5_to_raw(hdf5_path: Path, output_root: Path) -> Path:
+    """Rebuild the raw directory layout from an HDF5 export."""
     output_root.mkdir(parents=True, exist_ok=True)
     with h5py.File(hdf5_path, "r") as h5:
         manifest = _read_json_dataset(h5["metadata"], "session_manifest", {})
@@ -592,6 +605,7 @@ def hdf5_to_raw(hdf5_path: Path, output_root: Path) -> Path:
 
 
 def rlds_to_raw(rlds_dir: Path, output_root: Path) -> Path:
+    """Rebuild the raw directory layout from an RLDS-style directory."""
     meta = json.loads((rlds_dir / "episode_metadata.json").read_text(encoding="utf-8"))
     manifest = meta.get("session_manifest", {})
     session_id = _session_from_manifest(manifest)
@@ -820,6 +834,7 @@ def export_session(
     rlds_copy_media: bool = False,
     hdf5_embed_binary: bool = False,
 ) -> dict[str, str]:
+    """Export selected formats for one raw session and return output paths by name."""
     manifest = load_manifest(manifest_path)
     raw_root = manifest_path.parents[1]
     output_root = output_root or raw_root
@@ -840,6 +855,7 @@ def parse_formats(value: str) -> list[str]:
 
 
 def convert(args: argparse.Namespace) -> list[Path]:
+    """Dispatch CLI conversion requests across the supported source/target pairs."""
     source = args.from_format.lower()
     targets = parse_formats(args.to)
     multiple_targets = len(targets) > 1

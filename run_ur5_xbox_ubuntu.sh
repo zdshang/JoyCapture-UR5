@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
+# Launch JoyCapture-UR5 inside the configured conda environment.
+#
+# This wrapper loads optional .env overrides, verifies dependencies, then hands
+# off to the Python launcher that starts camera services and teleoperation.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [[ -f "$ROOT_DIR/.env" ]]; then
+  # Load lab-specific paths/IPs without committing them to the repository.
   set -a
   # shellcheck disable=SC1091
   source "$ROOT_DIR/.env"
@@ -95,6 +100,7 @@ PY
 )"
 
 if [[ "$CAMERA_ENABLE" == "1" ]]; then
+  # Camera mode needs RealSense/OpenCV in addition to robot-control packages.
   "$ROOT_DIR/scripts/check_urxbox_env.sh" all --conda-bin "$CONDA_BIN" --env-name "$ENV_NAME"
 else
   "$ROOT_DIR/scripts/check_urxbox_env.sh" robot --conda-bin "$CONDA_BIN" --env-name "$ENV_NAME"

@@ -5,7 +5,6 @@ __pycache__/
 
 .DS_Store
 
-paths/
 .env
 
 teleop_launcher_config.local.json

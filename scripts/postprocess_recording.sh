@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Run offline processing for a recorded raw session inside the configured conda
+# environment.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

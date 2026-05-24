@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Convert JoyCapture-UR5 datasets between raw, HDF5, and RLDS-style layouts
+# inside the configured conda environment.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

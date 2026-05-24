@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Check that the selected conda environment can import the modules needed for a
+# robot-only, camera-only, dataset-only, or full JoyCapture-UR5 run.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

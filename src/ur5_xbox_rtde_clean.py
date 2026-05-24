@@ -133,6 +133,8 @@ def relative_movel_script(
 
 
 class URScriptFallbackClient:
+    """Minimal sender for secondary URScript fallback motion commands."""
+
     def __init__(self, host: str, timeout: float) -> None:
         self.host = host
         self.timeout = timeout
@@ -165,6 +167,8 @@ class URScriptFallbackClient:
 
 
 class XboxController:
+    """Continuously normalize Xbox/gamepad input into a small state snapshot."""
+
     MAX_TRIG_VAL = float(2**8)
     MAX_JOY_VAL = float(2**15)
 
@@ -479,6 +483,13 @@ class XboxController:
 
 
 class RealSenseRecorder:
+    """In-process single-camera recorder kept for simple/local setups.
+
+    The normal Ubuntu launcher uses separate camera services, but this class
+    remains useful for one-camera testing and for platforms where process
+    orchestration is not needed.
+    """
+
     def __init__(self, args: argparse.Namespace) -> None:
         self.args = args
         self.enabled = bool(args.camera_enable) and cv2 is not None and np is not None and rs is not None
@@ -664,6 +675,8 @@ class RealSenseRecorder:
 
 
 class RemoteCameraRecorder:
+    """Client for a recorder service that runs in another process."""
+
     def __init__(self, args: argparse.Namespace, label: str | None = None) -> None:
         self.args = args
         self.enabled = bool(args.camera_enable)
@@ -946,6 +959,8 @@ class RemoteCameraRecorder:
 
 
 class MultiRemoteCameraRecorder:
+    """Fan-out wrapper that starts/stops all configured camera services together."""
+
     def __init__(self, args: argparse.Namespace) -> None:
         self.args = args
         self.enabled = bool(args.camera_enable)
@@ -1119,6 +1134,15 @@ class MultiRemoteCameraRecorder:
 
 
 class Teleop:
+    """Main robot-control state machine.
+
+    This class keeps the hardware-facing concerns in one place: controller
+    input, RTDE/URScript motion, Robotiq commands, synchronized recording, and
+    playback. The loop is intentionally conservative: motion is paused during
+    camera startup, gripper programs, reconnect attempts, and controller
+    recentering.
+    """
+
     def __init__(self, args: argparse.Namespace) -> None:
         self.args = args
         self.gamepad = XboxController()
@@ -1286,6 +1310,8 @@ class Teleop:
 
     def emergency_stop_best_effort(self) -> None:
         # Triple-layer stop: RTDE speedStop, Dashboard stop, URScript stopl.
+        # These are best-effort software stops and do not replace the physical
+        # emergency stop or teach pendant safety functions.
         try:
             self.stop_robot()
         except Exception:
@@ -1321,6 +1347,7 @@ class Teleop:
         )
 
     def init_rtde(self) -> None:
+        """Connect RTDE control/receive and decide whether fallback is allowed."""
         verbose_flags = RTDEControl.FLAG_VERBOSE
         upload_flags = verbose_flags
         if self.args.rtde_upload_script:
@@ -1657,6 +1684,7 @@ class Teleop:
         ]
 
     def start_camera_auto_record_if_enabled(self) -> None:
+        """Start cameras at launch when the config requests continuous capture."""
         if not self.args.camera_enable or not getattr(self.args, "camera_auto_record_on_start", False):
             return
         if self.camera_auto_recording:
@@ -1693,6 +1721,13 @@ class Teleop:
             self.camera_auto_recording = False
 
     def _start_camera_session_worker(self, session_id: str, record_start_host_ns: int) -> None:
+        """Start cameras without blocking the control loop forever.
+
+        When cameras start successfully, robot recording begins at a fresh
+        monotonic timestamp marked in the camera service. If cameras fail, the
+        robot/action recording still proceeds but the manifest will show that
+        camera sync is unavailable.
+        """
         camera_started = False
         try:
             try:
@@ -1742,6 +1777,7 @@ class Teleop:
             print("Path recording is active without camera sync.", flush=True)
 
     def export_camera_sync(self, label: str, camera_ts_path: Path, sync_path: Path) -> None:
+        """Align camera frame timestamps to robot poses by linear interpolation."""
         robot_t = [t for t, _ in self.recorded_points]
         robot_pose = [p for _, p in self.recorded_points]
 
@@ -1883,6 +1919,7 @@ class Teleop:
             _apply_to_args(recorder.args, label)
 
     def prepare_record_output_dir(self) -> Path:
+        """Allocate a session output root and point robot/camera writers at it."""
         out_dir = self.allocate_record_output_dir()
         self.current_record_output_dir = out_dir
         self.args.path_output_dir = str(out_dir)
@@ -1928,6 +1965,7 @@ class Teleop:
         raise FileNotFoundError(f"Session manifest not found under {raw_root}: {session}")
 
     def load_playback_path_from_raw(self) -> bool:
+        """Load the configured raw session manifest for Back-button playback."""
         try:
             manifest_path = self.resolve_playback_manifest()
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -2046,6 +2084,7 @@ class Teleop:
         self._robot_record_thread = None
 
     def robot_record_worker(self) -> None:
+        """Sample robot pose/action rows at a fixed rate during recording."""
         interval = max(0.001, float(self.args.record_interval_s))
         next_t = self.record_start_t
         while self.recording and not self._robot_record_stop.is_set():
@@ -2073,6 +2112,7 @@ class Teleop:
                 next_t += skipped * interval
 
     def start_recording(self) -> None:
+        """Begin a synchronized robot/camera recording session."""
         self.stop_robot()
         self.stop_robot_record_thread()
         with self._record_lock:
@@ -2106,6 +2146,7 @@ class Teleop:
             print("Path recording is active.", flush=True)
 
     def stop_recording_and_save(self) -> None:
+        """Stop recording and write all raw artifacts plus optional conversions."""
         self.stop_robot()
         self.recording = False
         self.recording_pending = False
@@ -2422,6 +2463,7 @@ class Teleop:
                 print(f"Camera intrinsics saved ({label}): {record['intrinsics_path']}", flush=True)
 
     def playback_latest_path(self) -> None:
+        """Replay the latest in-memory or configured raw trajectory over RTDE."""
         if self.playback_running:
             print("Playback is already running.", flush=True)
             return
@@ -2599,6 +2641,7 @@ class Teleop:
         return axis_ok and shoulder_ok
 
     def ensure_rtde_program_running(self) -> bool:
+        """Check the UR External Control script before sending speed commands."""
         if self.use_fallback or self.rtde_c is None:
             return False
 
@@ -2687,6 +2730,7 @@ class Teleop:
             return False
 
     def auto_reconnect_rtde_if_needed(self) -> bool:
+        """Attempt RTDE recovery after operations that can interrupt the script."""
         if self.use_fallback or self.rtde_c is None:
             return False
         if not self.rtde_needs_reconnect:
@@ -2737,6 +2781,7 @@ class Teleop:
         self.fallback_client.send_script(script)
 
     def compute_speed(self, snap: dict[str, float | int | bool]) -> list[float]:
+        """Map normalized controller input into TCP linear/angular velocity."""
         left_x = self.clamp_deadzone(float(snap["left_x"]))
         left_y = self.clamp_deadzone(float(snap["left_y"]))
         right_x = self.clamp_deadzone(float(snap["right_x"]))
@@ -2880,6 +2925,7 @@ class Teleop:
         )
 
     def run(self) -> int:
+        """Run the teleoperation loop until controller, keyboard, or signal exit."""
         self.print_controls()
         print("Waiting for controller events...")
 

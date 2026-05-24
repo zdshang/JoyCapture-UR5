@@ -12,6 +12,8 @@ The live recorder uses a source-data-first workflow: robot/action/gripper CSV fi
 
 For full configuration, output layout, dataset format, and troubleshooting details, see [docs/DETAILS.md](docs/DETAILS.md).
 
+Before running on real hardware, read [SAFETY.md](SAFETY.md).
+
 ## Features
 
 - Xbox controller teleoperation for UR5 TCP motion.
